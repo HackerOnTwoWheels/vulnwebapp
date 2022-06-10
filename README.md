@@ -3,7 +3,7 @@
 - For easy of use just spin a docker container from docker hub
 
 ```bash
-docker pull hackerontwowheels/vulnwebapp
+docker run hackerontwowheels/vulnwebapp:1.0
 ```
 
 - Or download and run with go
