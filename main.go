@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	ttemplate "text/template"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -58,18 +59,29 @@ func sqli_handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+func xss_handler(w http.ResponseWriter, r *http.Request) {
+	t := ttemplate.Must(ttemplate.ParseFiles("html/xss.html"))
+	msg, ok := r.URL.Query()["msg"]
+	if !ok || len(msg) == 0 {
+		fmt.Fprintf(w, "Missing the 'msg' GET param, please use ?msg= to display the message of the day! :D")
+	} else {
+
+		t.Execute(w, msg)
+	}
+
+}
 
 func index_handler(w http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("html/index.html")
 	t.Execute(w, nil)
 }
 
-func testquery() {
+/* func testquery() {
 	selusers := GlobalDB.QueryRow("select email from users where id = 2")
 	var email string
 	selusers.Scan(&email)
 	fmt.Println(email)
-}
+} */
 func main() {
 	db, err := sql.Open("sqlite3", "file:vulndb.db?cache=shared")
 	if err != nil {
@@ -84,10 +96,10 @@ func main() {
 	GlobalDB = *db
 	dbCreate(db)
 
-	testquery()
 	fmt.Println("~~~~ Starting Web Server ~~~~")
 	http.HandleFunc("/", index_handler)
 	http.HandleFunc("/sqli", sqli_handler)
+	http.HandleFunc("/xss", xss_handler)
 	http.ListenAndServe(":9001", nil)
 
 }
